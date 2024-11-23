@@ -23,12 +23,12 @@ def get_metadata(path):
             texts.append(data['text'])
     return texts, titles
 
-
 def combine_docs(indexes, texts):
     result = ""
     for i, index in enumerate(indexes):
         result += " [" + str(i + 1) + "] " + texts[index]
     return result
+
 
 def print_docs(indexes, texts):
     for i, index in enumerate(indexes):
@@ -47,28 +47,54 @@ def create_prompt(query, docs):
     content of the sources, convey the information accurately
     Structure the text in a clear way whenever possible, even if formatting is
     limited.
-    Follow this format in your responses. User query: {query}. Documents: {docs}
+    For example: 
+    User query: ML.
+    Documents:  
+    [1] es of ML models.  
+    [2] The rapid escalation of applying Machine Learning (ML) in various domains has led to paying more attention to the quality of ML components. There is then a growth of techniques and tools aiming at improving the quality of ML components and integrating them.  
+    
+    Machine Learning (ML) is increasingly applied across various domains, leading to a focus on the quality of ML components and the development of techniques to improve and integrate them [2]
+   
+    Follow this format in your responses and print all documents. User query: {query}. Documents: {docs}
     """
 
     return system_prompt
 
 
-def main(query):
+def main(query, search_types):
     model, llm = get_emdedding_model(), get_llm()
     texts, titles = get_metadata(config.PATH_METADATA)
     embedding = model.get_query_embedding(query)
 
-    knowledge_base = KnowledgeBase(config.PATH_FAISS)
-    indexes = knowledge_base.search_by_embedding(embedding, 5)[0]
+    knowledge_base = KnowledgeBase(config.PATH_FAISS, config.PATH_PREPROCESSING_TEXT)
+    vector_search = []
+    bm25_search = []
 
-    docs = combine_docs(indexes, texts)
+    if "Vector" in search_types:
+        vector_search = knowledge_base.search_by_embedding(embedding, 5)[0].tolist()
+    if "BM25" in search_types:
+        bm25_search = knowledge_base.search_by_BM25(query, 5)
+
+    docs = combine_docs(vector_search + bm25_search, texts)
     prompt = create_prompt(query, docs)
 
     response = llm.generate_response(prompt)
-    print_docs(indexes, texts)
     return response
 
 
 if __name__ == '__main__':
-    demo = gr.Interface(fn=main, inputs="text", outputs="text")
+    demo = gr.Interface(
+        fn=main,
+        inputs=[
+            gr.Textbox(label="Enter your query"),
+            gr.CheckboxGroup(
+                choices=["Vector", "BM25"],
+                label="Search Types",
+                value=["Vector", "BM25"]
+            ),
+        ],
+        outputs="text",
+        title="PaperRAG",
+        description="RAG system for scientific papers with selectable search types"
+    )
     demo.launch()
