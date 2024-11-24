@@ -1,13 +1,12 @@
 import requests
-import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 class LLM:
-    def __init__(self):
-        self.api_key = os.getenv("AZURE_API_KEY_GPT_4_mini")
-        self.endpoint = os.getenv("AZURE_ENDPOINT_GPT_4_mini")
+    def __init__(self, endpoint, api_key):
+        self.endpoint =endpoint
+        self.api_key = api_key
 
     def generate_response(self, prompt):
         headers = {
@@ -26,4 +25,4 @@ class LLM:
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]
         else:
-            return ValueError("Error")
+            return ValueError(response.text)

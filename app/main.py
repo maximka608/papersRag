@@ -10,8 +10,8 @@ def get_emdedding_model():
     return Embeddings()
 
 
-def get_llm():
-    return LLM()
+def get_llm(url, api_key):
+    return LLM(url, api_key)
 
 
 def get_metadata(path):
@@ -61,8 +61,8 @@ def create_prompt(query, docs):
     return system_prompt
 
 
-def main(query, search_types):
-    model, llm = get_emdedding_model(), get_llm()
+def main(query, search_types, llm_url, llm_api_key):
+    model, llm = get_emdedding_model(), get_llm(llm_url, llm_api_key)
     texts, titles = get_metadata(config.PATH_METADATA)
     embedding = model.get_query_embedding(query)
 
@@ -92,6 +92,8 @@ if __name__ == '__main__':
                 label="Search Types",
                 value=["Vector", "BM25"]
             ),
+            gr.Textbox(label="LLM URL", placeholder="Enter LLM ENDPOINT", type="text"),
+            gr.Textbox(label="LLM API Key", placeholder="Enter LLM API Key", type="password")
         ],
         outputs="text",
         title="PaperRAG",
