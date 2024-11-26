@@ -1,28 +1,15 @@
-import requests
-from dotenv import load_dotenv
-
-# load_dotenv()
+import requests, os
+from litellm import completion
 
 class LLM:
-    def __init__(self, endpoint, api_key):
-        self.endpoint =endpoint
-        self.api_key = api_key
+    def __init__(self, api_key):
+        os.environ["COHERE_API_KEY"] = api_key
 
-    def generate_response(self, prompt):
-        headers = {
-            "Content-Type": "application/json",
-            "api-key": self.api_key,
-        }
-
-        data = {
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 3000,
-            "temperature": 0.5,
-        }
-
-        response = requests.post(self.endpoint, headers=headers, json=data)
-
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"]
-        else:
-            return ValueError(response.text)
+    def generate_response(self, prompt, temperature=0.5, max_tokens=1000):
+        response = completion(
+            model="command-r",
+            messages=[{"content": prompt, "role": "user"}],
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        return response.choices[0].message.content

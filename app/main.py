@@ -10,8 +10,8 @@ def get_emdedding_model():
     return Embeddings()
 
 
-def get_llm(url, api_key):
-    return LLM(url, api_key)
+def get_llm(api_key):
+    return LLM(api_key)
 
 
 def get_metadata(path):
@@ -36,33 +36,25 @@ def print_docs(indexes, texts):
 
 
 def create_prompt(query, docs):
-    system_prompt = f""" You are a language model integrated into a search and
-    generation system based on relevant documents (RAG system).
-    Your task is to provide answers to the user's queries based on the provided
-    documents. Respond only based on the provided documents. Do not make up
-    information that is not in the sources. If you use data from a document,
-    indicate the document number in square brackets. For example: "This term
-    means such-and-such [1]." If there is no information in the documents,
-    politely explain that the information is not available. Do not alter the
-    content of the sources, convey the information accurately
-    Structure the text in a clear way whenever possible, even if formatting is
-    limited.
-    For example: 
-    User query: ML.
-    Documents:  
-    [1] es of ML models.  
-    [2] The rapid escalation of applying Machine Learning (ML) in various domains has led to paying more attention to the quality of ML components. There is then a growth of techniques and tools aiming at improving the quality of ML components and integrating them.  
-    
-    Machine Learning (ML) is increasingly applied across various domains, leading to a focus on the quality of ML components and the development of techniques to improve and integrate them [2]
-   
-    Follow this format in your responses and print all documents. User query: {query}. Documents: {docs}
-    """
+    system_prompt = f"""You are a language model integrated into a search and generation system based on relevant documents (RAG system).
+    Your task is to provide answers to the user's queries based solely on the provided documents.
+    If the information required to answer the user's question is available in the documents, use it, and refer to the document from which it was sourced by indicating its number in square brackets. For example: 
+    "This term means such-and-such [1]."
+    Ensure that the citation clearly refers to the relevant document and is placed directly after the information from the source.
 
+    If the information is not present in the documents, kindly explain that the information is not available, and do not speculate or make up information.
+
+    Do not alter the content or meaning of the sources. Convey the information accurately and structure your response clearly, even if the formatting options are limited.
+
+    User query: {query}
+    Documents:
+    {docs}
+    """
     return system_prompt
 
 
-def main(query, search_types, llm_url, llm_api_key):
-    model, llm = get_emdedding_model(), get_llm(llm_url, llm_api_key)
+def main(query, search_types, llm_api_key):
+    model, llm = get_emdedding_model(), get_llm(llm_api_key)
     texts, titles = get_metadata(config.PATH_METADATA)
     embedding = model.get_query_embedding(query)
 
@@ -79,7 +71,7 @@ def main(query, search_types, llm_url, llm_api_key):
     prompt = create_prompt(query, docs)
 
     response = llm.generate_response(prompt)
-    return response
+    return response, docs
 
 
 if __name__ == '__main__':
@@ -92,10 +84,12 @@ if __name__ == '__main__':
                 label="Search Types",
                 value=["Vector", "BM25"]
             ),
-            gr.Textbox(label="LLM URL", placeholder="Enter LLM ENDPOINT", type="text"),
             gr.Textbox(label="LLM API Key", placeholder="Enter LLM API Key", type="password")
         ],
-        outputs="text",
+        outputs=[
+            gr.Textbox(label="LLM Response"),
+            gr.Textbox(label="Combined Documents")
+        ],
         title="PaperRAG",
         description="RAG system for scientific papers with selectable search types"
     )
