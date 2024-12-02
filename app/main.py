@@ -69,7 +69,7 @@ def main(query, search_types, llm_api_key):
     if "Vector" in search_types:
         vector_search = knowledge_base.search_by_embedding(embedding, 5)[0].tolist()
     if "BM25" in search_types:
-        bm25_search = knowledge_base.search_by_BM25(query, 5)
+        bm25_search = knowledge_base.search_by_BM25(query, 3)
 
     docs = combine_docs(vector_search + bm25_search, texts)
     prompt = create_prompt(query, docs)

@@ -7,7 +7,7 @@ class LLM:
 
     def generate_response(self, prompt, temperature=0.5, max_tokens=1000):
         response = completion(
-            model="command-r",
+            model="command-r-plus",
             messages=[{"content": prompt, "role": "user"}],
             temperature=temperature,
             max_tokens=max_tokens
