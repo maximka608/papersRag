@@ -13,9 +13,10 @@ class KnowledgeBase:
             data = json.load(file)
             return data
 
-    def search_by_BM25(self, query, k=5):
+    def search_by_BM25(self, query, k=10):
         preprocessor = Preprocessor()
         prep_query = preprocessor.preprocessing_text(query)
+        print(prep_query)
         doc_scores = self.BM25_model.get_scores(prep_query)
         sorted_docs = np.argsort(-doc_scores)
         return sorted_docs[:k].tolist()

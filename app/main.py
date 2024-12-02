@@ -36,15 +36,19 @@ def print_docs(indexes, texts):
 
 
 def create_prompt(query, docs):
-    system_prompt = f"""You are a language model integrated into a search and generation system based on relevant documents (RAG system).
-    Your task is to provide answers to the user's queries based solely on the provided documents.
-    If the information required to answer the user's question is available in the documents, use it, and refer to the document from which it was sourced by indicating its number in square brackets. For example: 
-    "This term means such-and-such [1]."
-    Ensure that the citation clearly refers to the relevant document and is placed directly after the information from the source.
+    system_prompt = f"""You are a language model integrated into a retrieval-augmented generation (RAG) system.
+    Your task is to answer the user's query strictly based on the provided documents. Do not invent, speculate, or include any information not found in the documents.
 
-    If the information is not present in the documents, kindly explain that the information is not available, and do not speculate or make up information.
+    If the required information is available in the documents, use it to construct your response and cite the source by indicating the document number in square brackets. For example:
+    DL stands for Deep Learning, a subset of Machine Learning that involves learning complex non-linear relationships between large datasets [6].
 
-    Do not alter the content or meaning of the sources. Convey the information accurately and structure your response clearly, even if the formatting options are limited.
+    If the information required to answer the query is not available in the documents, explicitly state:
+    "The required information is not available in the provided documents."
+
+    Ensure that:
+    - The response is entirely based on the content of the documents.
+    - Citations are accurate and directly linked to the information being cited.
+    - No assumptions, speculations, or fabricated details are included.
 
     User query: {query}
     Documents:
